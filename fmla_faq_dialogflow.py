@@ -68,6 +68,7 @@ class FmlaHandler(simplebot.SimpleHandler):
         else:
             resultObj['result'] = response.query_result.fulfillment_text
         print(resultObj['result'])
+        print(resultObj)
         ###
 #        resultObj['result'] = response.query_result.fulfillment_text
         return resultObj
@@ -83,4 +84,5 @@ if __name__ == "__main__":
         defArgs['json_response']= True
 
     print("Launching console-interactive server... [credentials? run {:} <bot_user> <pass> ]".format(sys.argv[0]))
+    print()
     FmlaHandler.serve_forever(defArgs, FmlaHandler)

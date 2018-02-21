@@ -6,8 +6,9 @@ import dialogflow
 # [END import_libraries]
 project_id = "fmla-faq"
 language_code = "en-US"
-session_id = str(uuid.uuid4())
-text = "thisisarandomtestforeric"
+#session_id = str(uuid.uuid4())
+session_id = "testSession"
+text = "thisisanothertestforeric"
 
 # [START dialogflow_detect_intent_text]
 def detect_intent_texts():
@@ -41,7 +42,9 @@ def detect_intent_texts():
     print('Output context: {}\n'.format(
         response.query_result.output_contexts))
     print("***********************************")
-    print(response.query_result.output_contexts.pop())
+#    print(response.query_result.output_contexts.pop())
+    print(response.query_result.output_contexts)
+
 
 #    context = client_context.get_context(response.query_result.output_contexts.parameters)
 #    print(context.lifespan_count)
