@@ -1,7 +1,3 @@
-###
-# export GOOGLE_APPLICATION_CREDENTIALS="/Users/Liu/Documents/Python/fmla-faq-81f41533d01e.json"
-# export GOOGLE_APPLICATION_CREDENTIALS="/Users/ediliu/Documents/PythonProjs/fmla-faq-81f41533d01e.json"
-###
 from chatbot_simplebot import simplebot
 import os
 import requests
@@ -9,6 +5,7 @@ import json
 import argparse
 import uuid
 import dialogflow
+from hashlib import sha256
 
 from chatbot_simplebot.simplebot import SimpleHandler
 
@@ -26,7 +23,7 @@ class FmlaHandler(simplebot.SimpleHandler):
         """
         project_id = "fmla-faq"
         language_code = "en-US"
-        session_id = str(uuid.uuid4())
+        session_id = sha256(str.encode(resultObj['from'])).hexdigest()
         text = resultObj['message']
 
         session_client = dialogflow.SessionsClient()
