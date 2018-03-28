@@ -8,7 +8,6 @@ import dialogflow
 from hashlib import sha256
 
 from chatbot_simplebot.simplebot import SimpleHandler
-from helper_files.dialogflow_parameters import para_to_dict
 
 
 class FmlaHandler(SimpleHandler):
@@ -42,10 +41,6 @@ class FmlaHandler(SimpleHandler):
         response = session_client.detect_intent(
             session=session, query_input=query_input)
 
-        # Find information from fmla_faq.json
-        fmla_faq_dict = json.loads(open('fmla_faq.json', 'r').read())
-        fmla_status_dict = json.loads(open('fmla_status.json', 'r').read())
-
         print('=' * 20)  # separator
         print('Query text: {}'.format(response.query_result.query_text))  # query user sent
 
@@ -63,11 +58,20 @@ class FmlaHandler(SimpleHandler):
             response.query_result.output_contexts))
 
         detected_intent = response.query_result.intent.display_name
+        parameters = dict(response.query_result.parameters.items())
+
+        print(parameters)
+
+        fmla_faq_dict = json.loads(open('fmla_faq.json', 'r').read())
 
         if detected_intent == 'fmla-status':
             # find fmla status from fmla_status.json
+            fmla_status_dict = json.loads(open('fmla_status.json', 'r').read())
             # to be replaced with actual data from LeaveLink
-            leave_number = int(para_to_dict(response.query_result.parameters).get('leavenumber'))
+            try:
+                leave_number = int(parameters['leavenumber'])
+            except:
+                leave_number = ''
             if leave_number != '':
                 if leave_number % 5 == 1:
                     resultObj['result'] = fmla_status_dict.get('status1')
