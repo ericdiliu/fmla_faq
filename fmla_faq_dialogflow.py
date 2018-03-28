@@ -1,15 +1,17 @@
 from chatbot_simplebot import simplebot
 import os
-import requests
+# import requests
 import json
-import argparse
-import uuid
+# import argparse
+# import uuid
 import dialogflow
 from hashlib import sha256
 
 from chatbot_simplebot.simplebot import SimpleHandler
+from helper_files.dialogflow_parameters import para_to_dict
 
-class FmlaHandler(simplebot.SimpleHandler):
+
+class FmlaHandler(SimpleHandler):
 
     @staticmethod
     def getEnvironment(param):
@@ -21,11 +23,13 @@ class FmlaHandler(simplebot.SimpleHandler):
         """
         Customized processing function for producing a result.
         """
+
+        # Settings for google project
         project_id = "fmla-faq"
         language_code = "en-US"
         session_id = sha256(str.encode(resultObj['from'])).hexdigest()
-        text = resultObj['message']
 
+        text = resultObj['message']
         session_client = dialogflow.SessionsClient()
 
         session = session_client.session_path(project_id, session_id)
@@ -38,47 +42,64 @@ class FmlaHandler(simplebot.SimpleHandler):
         response = session_client.detect_intent(
             session=session, query_input=query_input)
 
-        fmla_faq = open('fmla_faq.json', 'r').read()
-        fmla_faq_dict = json.loads(fmla_faq)
+        # Find information from fmla_faq.json
+        fmla_faq_dict = json.loads(open('fmla_faq.json', 'r').read())
+        fmla_status_dict = json.loads(open('fmla_status.json', 'r').read())
 
-        print('=' * 20)
-        print('Query text: {}'.format(response.query_result.query_text))
+        print('=' * 20)  # separator
+        print('Query text: {}'.format(response.query_result.query_text))  # query user sent
+
+        # Detected intent and confidence from Dialogflow
         print('Detected intent: {} (confidence: {})\n'.format(
             response.query_result.intent.display_name,
             response.query_result.intent_detection_confidence))
+
+        # Fulfilment text, parameter, and context from Dialogflow
         print('Fulfillment text: {}\n'.format(
             response.query_result.fulfillment_text))
-        ###
         print('Parameter text: {}\n'.format(
             response.query_result.parameters))
         print('Output context: {}\n'.format(
             response.query_result.output_contexts))
 
-        fmla_intent = response.query_result.intent.display_name
+        detected_intent = response.query_result.intent.display_name
 
-
-        if response.query_result.intent.display_name == "testHTML":
-            resultObj['result'] = "<table><tr><td>c1r1</td><td>c1r2</td></tr><tr><td>c2r1</td><td>c2r2</td></tr></table><img src='https://1.bp.blogspot.com/-YmpTbsT6ZVo/WLmowwnyc8I/AAAAAAAAAAM/uWyQ7W8XtzMREwhiuqiP-UPKQHQP3TJpwCLcB/s320/iPhone7-jetblack.png'></img><z-button message=\"What is FMLA?\">What is FMLA?</z-button>"
-        elif fmla_intent in fmla_faq_dict:
-            ### find answer from json_data
-            resultObj['result'] = fmla_faq_dict.get(fmla_intent)
+        if detected_intent == 'fmla-status':
+            # find fmla status from fmla_status.json
+            # to be replaced with actual data from LeaveLink
+            leave_number = int(para_to_dict(response.query_result.parameters).get('leavenumber'))
+            if leave_number != '':
+                if leave_number % 5 == 1:
+                    resultObj['result'] = fmla_status_dict.get('status1')
+                elif leave_number % 5 == 2:
+                    resultObj['result'] = fmla_status_dict.get('status2')
+                elif leave_number % 5 == 3:
+                    resultObj['result'] = fmla_status_dict.get('status3')
+                elif leave_number % 5 == 4:
+                    resultObj['result'] = fmla_status_dict.get('status4')
+                else:
+                    resultObj['result'] = fmla_status_dict.get('status5')
+            else:
+                resultObj['result'] = response.query_result.fulfillment_text
+        elif detected_intent in fmla_faq_dict:
+            # find FAQ answer from fmla_faq.json
+            resultObj['result'] = fmla_faq_dict.get(detected_intent)
         else:
             resultObj['result'] = response.query_result.fulfillment_text
         print(resultObj['result'])
         print(resultObj)
-        ###
-#        resultObj['result'] = response.query_result.fulfillment_text
+
         return resultObj
 
 
 if __name__ == "__main__":
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))     # add path
-    defArgs = {'port':8899, 'verbose':True}        # default args
-    if len(sys.argv)>2:                                             # add user/password
+    defArgs = {'port': 8899, 'verbose': True}        # default args
+    if len(sys.argv) > 2:                                             # add user/password
         defArgs['bot_name'] = sys.argv[1]
         defArgs['bot_secret'] = sys.argv[2]
-        defArgs['json_response']= True
+        defArgs['json_response'] = True
 
     print("Launching console-interactive server... [credentials? run {:} <bot_user> <pass> ]".format(sys.argv[0]))
     print()

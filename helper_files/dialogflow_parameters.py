@@ -8,3 +8,4 @@ def para_to_dict(parameters):
     while len(m) != 0:
         d[m.pop(0)] = m.pop(1)
     print(d)
+    return d
